@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import InputForm from './components/InputForm';
-import ProcessSteps from './components/ProcessSteps';
-import OutputDashboard from './components/OutputDashboard';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Target, Bot, User } from 'lucide-react';
+
+import Portfolio from './components/Portfolio';
+import GoalPlanner from './components/GoalPlanner';
+import AIAdvisor from './components/AIAdvisor';
+import Profile from './components/Profile';
 
 function App() {
   const [isSplashActive, setIsSplashActive] = useState(true);
-  const [step, setStep] = useState(1);
-  const [userData, setUserData] = useState(null);
+  const [activeTab, setActiveTab] = useState('portfolio');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -17,19 +18,22 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleGeneratePlan = (data) => {
-    setUserData(data);
-    setStep(2);
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'portfolio': return <Portfolio />;
+      case 'goal': return <GoalPlanner />;
+      case 'advisor': return <AIAdvisor />;
+      case 'profile': return <Profile />;
+      default: return <Portfolio />;
+    }
   };
 
-  const handleProcessComplete = () => {
-    setStep(3);
-  };
-
-  const handleReset = () => {
-    setStep(1);
-    setUserData(null);
-  };
+  const tabs = [
+    { id: 'portfolio', label: 'Portfolio', icon: LayoutDashboard },
+    { id: 'goal', label: 'Goal', icon: Target },
+    { id: 'advisor', label: 'AI Advisor', icon: Bot },
+    { id: 'profile', label: 'Profile', icon: User },
+  ];
 
   return (
     <>
@@ -74,28 +78,55 @@ function App() {
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen p-4 md:p-8 font-sans relative overflow-hidden text-slate-800">
+      <div className="min-h-screen pb-24 md:pb-8 font-sans relative overflow-x-hidden text-slate-800 flex flex-col">
         {/* Background decorations */}
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-indigo-200/40 blur-3xl -z-10"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-blue-200/40 blur-3xl -z-10"></div>
+        <div className="fixed top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-indigo-200/40 blur-3xl -z-10"></div>
+        <div className="fixed bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-blue-200/40 blur-3xl -z-10"></div>
 
-        <header className="max-w-5xl mx-auto mb-10 flex items-center gap-4">
+        <header className="max-w-5xl mx-auto w-full pt-8 px-4 md:px-8 mb-6 flex items-center gap-4">
           <div className="p-3 bg-gradient-to-br from-indigo-500 to-blue-600 text-white rounded-2xl shadow-lg shadow-indigo-200/50">
             <ShieldCheck size={32} />
           </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-blue-600">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-blue-600">
               SecureInvestment
             </h1>
-            <p className="text-slate-500 font-medium mt-1">Transform your financial goals into reality</p>
           </div>
         </header>
         
-        <main className="max-w-5xl mx-auto backdrop-blur-sm">
-          {step === 1 && <InputForm onSubmit={handleGeneratePlan} />}
-          {step === 2 && <ProcessSteps userData={userData} onComplete={handleProcessComplete} />}
-          {step === 3 && <OutputDashboard userData={userData} onReset={handleReset} />}
+        <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 backdrop-blur-sm relative z-0 mt-4 h-full">
+          {renderTabContent()}
         </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-slate-200 p-4 md:p-6 z-40 rounded-t-3xl shadow-[0_-10px_40px_rgb(0,0,0,0.05)] md:sticky md:mt-12 md:max-w-md md:mx-auto md:rounded-3xl md:bottom-6 md:border md:shadow-xl">
+          <div className="flex justify-around items-center max-w-md mx-auto">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 relative ${
+                    isActive ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <tab.icon size={24} className={isActive ? 'relative z-10' : ''} />
+                  <span className={`text-xs font-bold ${isActive ? 'opacity-100' : 'opacity-0 h-0'} transition-all`}>
+                    {tab.label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 bg-indigo-50 rounded-xl -z-0"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </>
   );
